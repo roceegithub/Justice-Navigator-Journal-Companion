@@ -5,8 +5,8 @@ Capstone Project - AI Edge '25
 ## Team Members
 
 Name                        GitHub Handle
-Miquel Pena                 mneyp1216
-Deanna Hoskins              deannarhoskins
+Miguel Pena                 mneyp1216
+DeAnna Hoskins              deannarhoskins
 Michael Washington          ADD
 Roland Carlisle             ADD
 
@@ -20,7 +20,7 @@ Roland Carlisle             ADD
 
 - Clone the Repository
 - Install Python 3.10+
-- (Optional) Create a Virtal Environment
+- (Optional) Create a Virtual Environment
 - Requirements TBA
 
 ## How to run
@@ -51,10 +51,3 @@ Roland Carlisle             ADD
 ## Feature Spec
 
 -TBA (Deanna)
-
-
-
-
-
-
-
