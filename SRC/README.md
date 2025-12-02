@@ -7,8 +7,8 @@ Capstone Project - AI Edge '25
 Name                        GitHub Handle
 Miguel Pena                 mneyp1216
 DeAnna Hoskins              deannarhoskins
-Michael Washington          ADD
-Roland Carlisle             ADD
+Michael Washington          michaeljwashington1111
+Roland Carlisle             roceegithub
 
 ## Purpose
 
