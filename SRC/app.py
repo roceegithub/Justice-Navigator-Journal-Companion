@@ -71,7 +71,7 @@ def daily_reflection(name):
         # user control to skip questions
         if e < len(daily_questions):
             skip = input("\nPress ENTER to continue or type 'SKIP' to finish: ")
-            if skip.lower() == 'SKIP':
+            if skip.lower() == 'skip':
                 # if SKIP, fill in the rest of the questions with "Skipped"
                 for s in range(e, len(daily_questions)):
                     answers.append("Skipped")
@@ -81,7 +81,7 @@ def daily_reflection(name):
 
 def weekly_check_in(name):
     """Weekly checkin with deeper questions"""
-    print("\n{name}, let's check-in...")
+    print(f"\n{name}, let's check-in...")
 
     weekly_questions = [
         "What do you feel was your biggest accomplishment this week? ",
@@ -94,10 +94,19 @@ def weekly_check_in(name):
     answers = []
     current_date = datetime.datetime.now().strftime("%m/%d/%Y")
 
-    for question in weekly_questions:
-        print("\n{questions}")
+    for e, question in enumerate(weekly_questions, 1):
+        print(f"\n{e}. {question}")
         answer = input("Your response: ")
         answers.append(answer)
+
+         # user control to skip questions
+        if e < len(weekly_questions):
+            skip = input("\nPress ENTER to continue or type 'SKIP' to finish: ")
+            if skip.lower() == 'skip':
+                # if SKIP, fill in the rest of the questions with "Skipped"
+                for s in range(e, len(weekly_questions)):
+                    answers.append("Skipped")
+                break
 
     return current_date, answers
 
