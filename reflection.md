@@ -9,6 +9,8 @@
 - I have added some information to the code. I have created a baseline to assist with our ideas and make changes as needed.
 - Created README.md file so we can add project based responses, reflection.md file for the team to communicate and advise of any ideas or changes they are interested in implementing.
 
+- @DeAnna thank you for the note I will make the changes and refresh.
+
 ## DeAnna
 
 - Submitted W8D2 project for the team with indication of the new project for our Capstone.
