@@ -29,14 +29,14 @@ def user_info():
 
     # date capture for time stamps
     while True:
-        reentry_date = input("When did you reenter society? (MM/DD/YYYY) ")
+        start_date = input("When did you begin your journey? (MM/DD/YYYY) ")
         try:
-            datetime.datetime.strptime(reentry_date, "%m/%d/%Y")
+            datetime.datetime.strptime(start_date, "%m/%d/%Y")
             break
         except ValueError:
             print(f"Please enter a valid date in MM/DD/YYYY format.")
 
-    return name, reentry_date
+    return name, start_date
 
 def daily_reflection(name):
     """guide user through daily reflection"""
@@ -103,13 +103,13 @@ def weekly_check_in(name):
 
 def save_entry(entry_type, date, time, content, name):
     """Create file for Journal Entries"""
-    filename = f"{name}_{date}_journal.txt"
+    filename = f"{name}_journal.txt"
 
     with open(filename, "a") as file:
-        file.write(f"\n{'='*64}")
+        file.write(f"\n{'='*64}\n")
         file.write(f"Entry Type: {entry_type}")
         file.write(f"Date: {date} | Time: {time}")
-        file.write(f"{'='*64}\n")
+        file.write(f"\n{'='*64}\n")
 
         if entry_type == "Daily Reflection":
             questions = [
@@ -133,3 +133,76 @@ def save_entry(entry_type, date, time, content, name):
                 "Goal for next week: ",
                 "Personal goal: "
             ]
+
+            for e, (question, answer) in enumerate(zip(questions, content)):
+                file.write(f"{question}{answer}\n")
+
+    print(f"\n{Fore.GREEN} √ Your entry has been saved to {filename}")
+
+def view_previous_entries(name):
+    """Review previous journal entries"""
+    filename = f"{name}_journal.txt"
+
+    if os.path.exists(filename):
+        print(f"\n Here are your previous journal entires, {name}:\n")
+        with open(filename, "r") as file:
+            print(file.read())
+    else:
+        print(f"\n Unfortunately you have not saved a file yet. Your Journal is ready to listen when you are ready to say.")
+
+def main():
+
+    # counter for invalid numbers when on the dashboard.
+    invalid_count = 0
+
+    """Main program function"""
+    welcome_message()
+
+    # Gather user information 
+    name, start_date = user_info()
+
+    # Personalization of welcome
+    print(f"\nWelcome, {name}! I am glad you are here.")
+    print(f"Keep in mind, this is your journey - we'll take it one day at a time.")
+
+    while True:
+        print(f"{Fore.CYAN}\n{'='*64}")
+        print(f"Hello {name}! What would you like to do? ")
+        print(f"1) Daily Reflection")
+        print(f"2) Weekly Check-in")
+        print(f"3) View Previous Entries")
+        print(f"4) Exit")
+
+        choice = input("\n Please select (1-4): ")
+
+        if invalid_count >= 3:
+            break
+
+        if choice == "1":
+            date, time, answers = daily_reflection(name)
+            save_entry("Daily Reflection", date, time, answers, name)
+
+        elif choice == "2":
+            date, answers = weekly_check_in(name)
+            save_entry("Weekly Check-in", date, "Weekly", answers, name)
+
+        elif choice == "3":
+            view_previous_entries(name)
+
+        elif choice == "4":
+            print(f"\nThank you for doing an entry today, {name}.")
+            print(f"Remember: Progress, not perfection. You've got this!")
+            print(F"Hope to see you tomorrow.\n")
+            break
+
+        elif choice not in ["1", "2", "3", "4"]:
+            print(f"\n{colorama.Fore.RED}{'='*10} That's the Wrong Number {'='*11}\n")
+            print(f"Please choose one of the options shown (1-4){colorama.Style.RESET_ALL}")
+            invalid_count += 1
+            if invalid_count >= 3:
+                print(f"\n{colorama.Fore.RED}You should have followed the rules, now you need to start over.{colorama.Style.RESET_ALL}\n")
+                break
+
+# Run the program
+if __name__ == "__main__":
+    main()
