@@ -33,7 +33,7 @@ Roland Carlisle             roceegithub
 
 ## How to run
 
-- Once the system is setup the key will be python journal_companion.py and run from the CLI in your terminal.
+- Once the system is setup the key will be SRC/ python app.py and run from the CLI in your terminal.
 - System will introduce the developers and provide a header designating the name of the file.
 - We would prefer your name as the system is created with the user in mind as to personalize the experience, but it is up to the user to decide which name it would like the system to refer to him as.
 
