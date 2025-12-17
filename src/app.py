@@ -377,6 +377,63 @@ def save_entry(entry_type, date, time, content, name, mood=None):
     filename = f"{name}_journal.txt"
 
     with open(filename, "a") as file:
+
+
+def _parse_journal_entries(content: str) -> list:
+    """
+    Parse journal file content into structured entries
+    Args:
+        content: Raw journal file content
+    Returns:
+        List of parsed entry dictionaries
+    """
+    entries = []
+    
+    # Split by entry separators
+    raw_entries = content.split('=' * 64)
+    
+    for raw_entry in raw_entries:
+        if not raw_entry.strip():
+            continue
+            
+        entry_dict = {}
+        
+        # Extract entry type
+        if "Entry Type:" in raw_entry:
+            type_line = [line for line in raw_entry.split('\n') if "Entry Type:" in line]
+            if type_line:
+                entry_dict['type'] = type_line[0].replace("Entry Type:", "").strip()
+        
+        # Extract date
+        if "Date:" in raw_entry:
+            date_line = [line for line in raw_entry.split('\n') if "Date:" in line]
+            if date_line:
+                entry_dict['date'] = date_line[0].replace("Date:", "").split('|')[0].strip()
+        
+        # Extract mood
+        if "Mood:" in raw_entry:
+            mood_line = [line for line in raw_entry.split('\n') if "Mood:" in line]
+            if mood_line:
+                entry_dict['mood'] = mood_line[0].replace("Mood:", "").strip()
+        
+        # Extract content (questions and answers)
+        content_lines = []
+        for line in raw_entry.split('\n'):
+            # Skip header lines
+            if any(skip in line for skip in ['Entry Type:', 'Date:', 'Time:', 'Mood:', '===', '---']):
+                continue
+            if line.strip():
+                content_lines.append(line.strip())
+        
+        if content_lines:
+            entry_dict['content'] = ' '.join(content_lines[:300])  # Limit content length
+        
+        # Only add entries that have meaningful data
+        if any(key in entry_dict for key in ['type', 'mood', 'content']):
+            entries.append(entry_dict)
+    
+    return entries
+
         file.write(f"\n{'='*64}\n")
         file.write(f"Entry Type: {entry_type}\n")
         file.write(f"Date: {date} | Time: {time}\n")
@@ -449,15 +506,21 @@ def generate_weekly_recap(name):
         
         print(f"\n{Fore.GREEN}Found {total_entries} journal entries ({daily_count} daily, {weekly_count} weekly, {chat_count} chat).{Style.RESET_ALL}")
         
-        # Create entry structure for chatbot
-        entries.append({
+        # Parse individual entries for AI context
+        parsed_entries = _parse_journal_entries(content)
+        
+        # Create summary entry
+        summary_entry = {
             'date': datetime.datetime.now().strftime("%m/%d/%Y"),
             'entry_count': total_entries,
             'daily_count': daily_count,
             'weekly_count': weekly_count,
             'chat_count': chat_count,
             'note': f"User has {total_entries} journal entries."
-        })
+        }
+        
+        # Combine summary with parsed entries
+        entries = [summary_entry] + parsed_entries[:5]  # Include summary + up to 5 recent entries
         
     except Exception as e:
         print(f"{Fore.RED}Error reading journal file: {e}{Style.RESET_ALL}")

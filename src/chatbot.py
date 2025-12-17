@@ -2,14 +2,38 @@ import random
 from typing import Dict, List, Optional, Any
 import json
 import datetime
+import os
+
+# OpenAI imports - only import if available
+try:
+    import openai
+    OPENAI_AVAILABLE = True
+except ImportError:
+    OPENAI_AVAILABLE = False
+    print("Warning: OpenAI package not installed. AI features will be disabled.")
 
 class UnifiedChatbot:
     """A chatbot for journal companion with empathetic responses and chat mode support"""
     
     def __init__(self, ai_enabled: bool = False):
-        self.ai_enabled = ai_enabled
+        self.ai_enabled = ai_enabled and OPENAI_AVAILABLE
         self.conversation_history = []
         self.user_context = {}
+        
+        # Initialize OpenAI client if enabled
+        self.openai_client = None
+        if self.ai_enabled:
+            api_key = os.getenv('OPENAI_API_KEY')
+            if api_key:
+                try:
+                    self.openai_client = openai.OpenAI(api_key=api_key)
+                    print("OpenAI client initialized successfully")
+                except Exception as e:
+                    print(f"Failed to initialize OpenAI client: {e}")
+                    self.ai_enabled = False
+            else:
+                print("OPENAI_API_KEY not found. AI features disabled.")
+                self.ai_enabled = False
         
         # Empathetic responses based on mood levels (1-5)
         self.mood_responses = {
@@ -382,10 +406,17 @@ class UnifiedChatbot:
         if not entries:
             return "It looks like this was a quiet week for journaling. That's okay! Every season has its rhythm. Sometimes, the space between entries is just as meaningful as the writing itself."
         
-        # Get a random template
+        # Use OpenAI if enabled, otherwise fall back to rule-based
+        if self.ai_enabled and self.openai_client:
+            try:
+                return self._generate_ai_recap(entries)
+            except Exception as e:
+                print(f"OpenAI API call failed: {e}. Falling back to rule-based recap.")
+                # Fall through to rule-based method
+        
+        # Rule-based recap (original implementation)
         template = random.choice(self.recap_templates)
         
-        # Fill in the template with random elements
         recap = template.format(
             observation=random.choice(self.recap_elements['observations']),
             quality=random.choice(self.recap_elements['qualities']),
@@ -401,7 +432,6 @@ class UnifiedChatbot:
             suggestion=random.choice(self.recap_elements['insights'])
         )
         
-        # Add entry count information if available
         if entries and 'entry_count' in entries[0]:
             entry_count = entries[0]['entry_count']
             if entry_count > 0:
@@ -415,7 +445,109 @@ class UnifiedChatbot:
         print("Conversation history cleared.")
 
 # Create a global instance for easy import
-chatbot = UnifiedChatbot(ai_enabled=False)
+# Enable AI if OpenAI API key is available
+import os
+ai_enabled = bool(os.getenv('OPENAI_API_KEY')) and OPENAI_AVAILABLE
+chatbot = UnifiedChatbot(ai_enabled=ai_enabled)
+
+
+    
+    def _generate_ai_recap(self, entries: List[Dict]) -> str:
+        """
+        Generate AI-powered weekly recap using OpenAI
+        Args:
+            entries: List of journal entry dictionaries with content
+        Returns:
+            AI-generated recap string
+        """
+        # Build context from entries
+        entry_summary = self._build_entry_context(entries)
+        
+        # System prompt as specified
+        system_prompt = """You are a supportive, emotionally intelligent journal companion. Your tone is warm, concise, and non-judgmental.
+Use reflective questions, motivational nudges, and strengths-based language.
+If the user expresses distress or crisis signals (self-harm, harm to others, panic, hopelessness), respond with grounding techniques and advise seeking real-world support. Never give medical, legal, or diagnostic instructions."""
+        
+        # User prompt with entry context
+        user_prompt = f"""Please review this week's journal entries and provide a thoughtful, supportive recap:
+
+{entry_summary}
+
+Create a weekly recap that:
+1. Acknowledges the user's emotional journey and mood patterns
+2. Highlights strengths, growth, or positive patterns you notice
+3. Offers gentle, reflective questions or encouragement
+4. Is warm, concise (2-3 paragraphs), and non-judgmental
+
+Focus on their resilience and any insights they've shared."""
+
+        # Make OpenAI API call
+        try:
+            response = self.openai_client.chat.completions.create(
+                model="gpt-4o-mini",  # Cost-effective model
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=0.7,
+                max_tokens=400  # Keep responses concise
+            )
+            
+            recap = response.choices[0].message.content.strip()
+            
+            # Add entry count if available
+            if entries and 'entry_count' in entries[0]:
+                entry_count = entries[0]['entry_count']
+                if entry_count > 0:
+                    recap += f"\n\n✨ You completed {entry_count} journal entries this week. That's a meaningful commitment to your self-reflection practice!"
+            
+            return recap
+            
+        except Exception as e:
+            raise Exception(f"OpenAI API error: {str(e)}")
+    
+    def _build_entry_context(self, entries: List[Dict]) -> str:
+        """
+        Build context string from journal entries
+        Args:
+            entries: List of entry dictionaries
+        Returns:
+            Formatted context string
+        """
+        context_parts = []
+        
+        # Add summary statistics if available
+        if entries and len(entries) > 0:
+            first_entry = entries[0]
+            
+            if 'entry_count' in first_entry:
+                context_parts.append(f"Total entries: {first_entry['entry_count']}")
+                
+            if 'daily_count' in first_entry:
+                context_parts.append(f"Daily reflections: {first_entry['daily_count']}")
+                
+            if 'weekly_count' in first_entry:
+                context_parts.append(f"Weekly check-ins: {first_entry['weekly_count']}")
+            
+            if 'chat_count' in first_entry:
+                context_parts.append(f"Chat conversations: {first_entry['chat_count']}")
+        
+        # Add individual entry details if provided
+        for i, entry in enumerate(entries[:5], 1):  # Limit to 5 entries to control token usage
+            if 'mood' in entry:
+                context_parts.append(f"\nEntry {i}:")
+                context_parts.append(f"  Mood: {entry.get('mood', 'Not specified')}")
+                
+            if 'content' in entry:
+                context_parts.append(f"  Content: {entry['content'][:200]}...")  # Truncate long content
+            
+            if 'date' in entry:
+                context_parts.append(f"  Date: {entry['date']}")
+        
+        if not context_parts:
+            return "The user has made journal entries this week but detailed content is not available."
+        
+        return "\n".join(context_parts)
 
 # Example usage
 if __name__ == "__main__":
