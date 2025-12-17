@@ -377,7 +377,42 @@ def save_entry(entry_type, date, time, content, name, mood=None):
     filename = f"{name}_journal.txt"
 
     with open(filename, "a") as file:
+        file.write(f"\n{'='*64}\n")
+        file.write(f"Entry Type: {entry_type}\n")
+        file.write(f"Date: {date} | Time: {time}\n")
+        if mood:
+            file.write(f"Mood: {mood['description']}\n")
+        file.write(f"{'='*64}\n")
 
+        if entry_type == "Daily Reflection":
+            daily_questions = [
+                "Positive moment: ",
+                "Challenge handled: ",
+                "Connections: ",
+                "Do differently: ",
+                "Current feelings: "
+            ]
+
+            for e, (question, answer) in enumerate(zip(daily_questions, content)):
+                file.write(f"{question}{answer}\n")
+
+        elif entry_type == "Weekly Check-in":
+            weekly_questions = [
+                "Biggest accomplishment: ",
+                "Most challenging: ",
+                "Support needed: ",
+                "Goal for next week: ",
+                "Personal growth: "
+            ]
+
+            for e, (question, answer) in enumerate(zip(weekly_questions, content)):
+                file.write(f"{question}{answer}\n")
+        
+        elif entry_type == "Chat Conversation":
+            for line in content:
+                file.write(f"{line}\n")
+    
+    print(f"\n{Fore.GREEN}✓ Your entry has been saved to {filename}")
 
 def _parse_journal_entries(content: str) -> list:
     """
@@ -433,43 +468,6 @@ def _parse_journal_entries(content: str) -> list:
             entries.append(entry_dict)
     
     return entries
-
-        file.write(f"\n{'='*64}\n")
-        file.write(f"Entry Type: {entry_type}\n")
-        file.write(f"Date: {date} | Time: {time}\n")
-        if mood:
-            file.write(f"Mood: {mood['description']}\n")
-        file.write(f"{'='*64}\n")
-
-        if entry_type == "Daily Reflection":                    # Reduced from 7 questions to 5
-            daily_questions = [
-                "Positive moment: ",
-                "Challenge handled: ",
-                "Connections: ",
-                "Do differently: ",
-                "Current feelings: "
-            ]
-
-            for e, (question, answer) in enumerate(zip(daily_questions, content)):
-                file.write(f"{question}{answer}\n")
-
-        elif entry_type == "Weekly Check-in":
-            weekly_questions = [
-                "Biggest accomplishment: ",
-                "Most challenging: ",
-                "Support needed: ",
-                "Goal for next week: ",
-                "Personal growth: "
-            ]
-
-            for e, (question, answer) in enumerate(zip(weekly_questions, content)):
-                file.write(f"{question}{answer}\n")
-        
-        elif entry_type == "Chat Conversation":
-            for line in content:
-                file.write(f"{line}\n")
-    
-    print(f"\n{Fore.GREEN}✓ Your entry has been saved to {filename}")
 
 def view_previous_entries(name):
     """Review previous journal entries"""
