@@ -298,7 +298,8 @@ class UnifiedChatbot:
     def get_chat_response(self, user_message: str, conversation_history: Optional[List[str]] = None, 
                          mood_context: Optional[Dict] = None) -> str:
         """
-        NEW: Get a conversational response for chat mode
+        Get a conversational response for chat mode
+        Uses OpenAI API first, falls back to rule-based responses
         Args:
             user_message: The user's message
             conversation_history: List of previous messages
@@ -314,7 +315,85 @@ class UnifiedChatbot:
         if mood_context:
             self.user_context['current_mood'] = mood_context
         
-        # Convert message to lowercase for analysis
+        # Try OpenAI API first if enabled
+        if self.ai_enabled and self.openai_client:
+            try:
+                response = self._get_ai_chat_response(user_message, mood_context)
+                # Track in history
+                self.conversation_history.append(f"User: {user_message}")
+                self.conversation_history.append(f"Companion: {response}")
+                return response
+            except Exception as e:
+                print(f"OpenAI API error, falling back to rule-based: {e}")
+                # Fall through to rule-based response
+        
+        # Fallback: Rule-based responses
+        response = self._get_rule_based_chat_response(user_message, mood_context)
+        
+        # Track in history
+        self.conversation_history.append(f"User: {user_message}")
+        self.conversation_history.append(f"Companion: {response}")
+        
+        return response
+    
+    def _get_ai_chat_response(self, user_message: str, mood_context: Optional[Dict] = None) -> str:
+        """
+        Get AI-powered chat response using OpenAI
+        Args:
+            user_message: The user's message
+            mood_context: Current mood context
+        Returns:
+            AI-generated response string
+        """
+        # Build conversation context
+        messages = [
+            {
+                "role": "system", 
+                "content": """You are a supportive, emotionally intelligent journal companion. Your tone is warm, concise, and non-judgmental.
+Use reflective questions, motivational nudges, and strengths-based language.
+Keep responses brief (1-3 sentences) and conversational.
+If the user expresses distress or crisis signals (self-harm, harm to others, panic, hopelessness), respond with grounding techniques and advise seeking real-world support.
+Never give medical, legal, or diagnostic instructions."""
+            }
+        ]
+        
+        # Add mood context if available
+        if mood_context:
+            mood_desc = mood_context.get('description', '')
+            messages.append({
+                "role": "system",
+                "content": f"The user's current mood is: {mood_desc}"
+            })
+        
+        # Add recent conversation history for context
+        for msg in self.conversation_history[-6:]:  # Last 6 messages
+            if msg.startswith("User: "):
+                messages.append({"role": "user", "content": msg[6:]})
+            elif msg.startswith("Companion: "):
+                messages.append({"role": "assistant", "content": msg[11:]})
+        
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+        
+        # Make OpenAI API call
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=150  # Keep responses concise
+        )
+        
+        return response.choices[0].message.content.strip()
+    
+    def _get_rule_based_chat_response(self, user_message: str, mood_context: Optional[Dict] = None) -> str:
+        """
+        Get rule-based chat response (fallback when AI is unavailable)
+        Args:
+            user_message: The user's message
+            mood_context: Current mood context
+        Returns:
+            Rule-based response string
+        """
         msg_lower = user_message.lower()
         
         # Categorize the message type
@@ -340,10 +419,6 @@ class UnifiedChatbot:
             mood_desc = mood_context.get('description', '')
             if mood_desc:
                 response = f"I remember you mentioned feeling {mood_desc.lower()}. {response}"
-        
-        # Track in history
-        self.conversation_history.append(f"User: {user_message}")
-        self.conversation_history.append(f"Companion: {response}")
         
         return response
     
