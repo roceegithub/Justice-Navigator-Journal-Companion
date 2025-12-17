@@ -295,8 +295,8 @@ class UnifiedChatbot:
         else:
             return random.sample(questions, count)
     
-    def get_chat_response(self, user_message: str, conversation_history: List[str] = None, 
-                         mood_context: Dict = None) -> str:
+    def get_chat_response(self, user_message: str, conversation_history: Optional[List[str]] = None, 
+                         mood_context: Optional[Dict] = None) -> str:
         """
         NEW: Get a conversational response for chat mode
         Args:
@@ -444,7 +444,7 @@ class UnifiedChatbot:
         self.conversation_history = []
         print("Conversation history cleared.")
 
-def _generate_ai_recap(self, entries: List[Dict]) -> str:
+    def _generate_ai_recap(self, entries: List[Dict]) -> str:
         """
         Generate AI-powered weekly recap using OpenAI
         Args:
