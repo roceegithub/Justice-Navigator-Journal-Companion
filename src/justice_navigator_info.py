@@ -7,17 +7,23 @@ def my_info() -> None:
     name = "DeAnna Hoskins, Roland Carlisle, Michael Washington, Miguel Pena"
     school = "Justice Through Code @ Columbia University -- Capstone Project"
     proj_name = "Justice Navigator - Journal Companion"
-    print(f"{Fore.WHITE}{"="*64}")
+    separator = "=" * 64
+    print(f"{Fore.WHITE}{separator}")
     print(f"\n{Fore.GREEN}{name}")
-    print(f"{Fore.CYAN}{"="*13}{proj_name}{"="*14}")
-    print(f"{Fore.YELLOW}{"*"*1}{school}{"*"*1}{Style.RESET_ALL}")
+    proj_sep = "=" * 13
+    proj_sep_end = "=" * 14
+    print(f"{Fore.CYAN}{proj_sep}{proj_name}{proj_sep_end}")
+    star = "*"
+    print(f"{Fore.YELLOW}{star}{school}{star}{Style.RESET_ALL}")
 
 my_info()
 
 def show_date() -> None:
     now = datetime.now()
     readable = now.strftime("%B %d, %Y at %I:%M:%S %p")
-    print(f"{Fore.WHITE}{"="*16}{readable}{"="*16}\n")
-    print(f"{Fore.WHITE}{"="*64}{Style.RESET_ALL}")
+    sep_16 = "=" * 16
+    sep_64 = "=" * 64
+    print(f"{Fore.WHITE}{sep_16}{readable}{sep_16}\n")
+    print(f"{Fore.WHITE}{sep_64}{Style.RESET_ALL}")
 
 show_date()
