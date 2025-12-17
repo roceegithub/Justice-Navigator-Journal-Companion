@@ -444,15 +444,7 @@ class UnifiedChatbot:
         self.conversation_history = []
         print("Conversation history cleared.")
 
-# Create a global instance for easy import
-# Enable AI if OpenAI API key is available
-import os
-ai_enabled = bool(os.getenv('OPENAI_API_KEY')) and OPENAI_AVAILABLE
-chatbot = UnifiedChatbot(ai_enabled=ai_enabled)
-
-
-    
-    def _generate_ai_recap(self, entries: List[Dict]) -> str:
+def _generate_ai_recap(self, entries: List[Dict]) -> str:
         """
         Generate AI-powered weekly recap using OpenAI
         Args:
@@ -548,6 +540,11 @@ Focus on their resilience and any insights they've shared."""
             return "The user has made journal entries this week but detailed content is not available."
         
         return "\n".join(context_parts)
+
+# Create a global instance for easy import
+# Enable AI if OpenAI API key is available
+ai_enabled = bool(os.getenv('OPENAI_API_KEY')) and OPENAI_AVAILABLE
+chatbot = UnifiedChatbot(ai_enabled=ai_enabled)
 
 # Example usage
 if __name__ == "__main__":
